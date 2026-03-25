@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chọn ngày xịn</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(135deg,#667eea,#764ba2);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .box {
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 20px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 80%;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+    }
+
+    ul { list-style: none; padding: 0; }
+
+    li {
+      background: #f1f1f1;
+      margin: 5px;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .count {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>📅 Chọn ngày đi chơi</h2>
+
+  <input type="text" id="name" placeholder="Tên của bạn">
+  <input type="date" id="dateInput">
+  <button onclick="saveDate()">Lưu</button>
+
+  <div class="count" id="count"></div>
+
+  <h3>👥 Danh sách</h3>
+  <ul id="list"></ul>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDtwQeujQNc9pP_HsGjd5iF51WAlv_OaBY",
+    authDomain: "chonngay-bc2ef.firebaseapp.com",
+    databaseURL: "https://chonngay-bc2ef-default-rtdb.firebaseio.com",
+    projectId: "chonngay-bc2ef",
+    storageBucket: "chonngay-bc2ef.firebasestorage.app",
+    messagingSenderId: "326020235650",
+    appId: "1:326020235650:web:1802c6a4dcfc06a3fd4f9b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dataRef = ref(db, "dates");
+
+  window.saveDate = function() {
+    const name = document.getElementById('name').value;
+    const date = document.getElementById('dateInput').value;
+
+    if (!name || !date) {
+      alert('Nhập tên và chọn ngày bro');
+      return;
+    }
+
+    push(dataRef, { name, date });
+  }
+
+  const list = document.getElementById('list');
+  const countDiv = document.getElementById('count');
+
+  onValue(dataRef, (snapshot) => {
+    list.innerHTML = '';
+    const data = snapshot.val();
+
+    if (!data) {
+      countDiv.textContent = 'Chưa có ai chọn';
+      return;
+    }
+
+    let total = 0;
+    let dateCount = {};
+
+    for (let id in data) {
+      const item = data[id];
+      total++;
+
+      dateCount[item.date] = (dateCount[item.date] || 0) + 1;
+
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${item.name}</span><span>${item.date}</span>`;
+      list.appendChild(li);
+    }
+
+    countDiv.textContent = `🔥 Tổng ${total} người đã chọn`;
+
+    // Hiển thị thống kê
+    for (let d in dateCount) {
+      const li = document.createElement('li');
+      li.innerHTML = `📊 ${d}: ${dateCount[d]} người`;
+      li.style.background = '#d1ecf1';
+      list.appendChild(li);
+    }
+  });
+</script>
+
+</body>
+</html>
